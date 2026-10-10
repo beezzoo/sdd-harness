@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install the OpenSpec version pinned in upstream.lock.json
+        run: |
+          version=$(node -p "require('./upstream.lock.json').upstreams.openspec.tag.replace(/^v/, '')")
+          npm install -g "@fission-ai/openspec@${version}"
+      - name: Tests (hooks, upstream-check, OpenSpec compat)
+        run: npm test
+        env:
+          OPENSPEC_REQUIRED: '1'
+      - name: Manifests are valid JSON
+        run: |
+          for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json hooks/hooks.json upstream.lock.json; do
+            node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" && echo "ok $f"
+          done

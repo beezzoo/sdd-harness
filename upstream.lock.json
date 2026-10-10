@@ -1,0 +1,35 @@
+{
+  "$comment": "Upstreams this harness adapts from. `tracks` maps each of our files to the upstream paths it was derived from. Bump `commit`/`tag` only after the relevant changes were reviewed and ported (see .claude/commands/upstream-sync.md).",
+  "upstreams": {
+    "ecc": {
+      "repo": "https://github.com/affaan-m/ECC",
+      "follow": "branch",
+      "branch": "main",
+      "commit": "4eb71d92a39cab44ad40ac9d8a6a5ccb4029d6c2",
+      "tracks": {
+        "agents/code-reviewer.md": ["agents/code-reviewer.md"],
+        "agents/security-reviewer.md": ["agents/security-reviewer.md"],
+        "agents/spec-miner.md": ["agents/spec-miner.md"],
+        "skills/verification-loop/SKILL.md": ["skills/verification-loop/SKILL.md"],
+        "skills/tdd-from-scenarios/SKILL.md": ["skills/tdd-workflow/SKILL.md"],
+        "skills/sdd-workflow/SKILL.md": ["skills/orch-pipeline/SKILL.md", "rules/common/development-workflow.md"],
+        "scripts/change-guard.mjs": ["skills/gateguard/SKILL.md"]
+      }
+    },
+    "openspec": {
+      "repo": "https://github.com/Fission-AI/OpenSpec",
+      "follow": "tag",
+      "npm": "@fission-ai/openspec",
+      "tag": "v1.14.1",
+      "commit": "87c3595ace6a2e22957f39ebe5b74c2f2316e0cb",
+      "tracks": {
+        "templates/openspec/config.yaml": ["src/core/project-config.ts", "docs/customization.md"],
+        "agents/spec-miner.md": ["schemas/spec-driven/schema.yaml", "docs/writing-specs.md"],
+        "skills/tdd-from-scenarios/SKILL.md": ["schemas/spec-driven/schema.yaml"],
+        "skills/sdd-workflow/SKILL.md": ["docs/opsx.md", "docs/commands.md", "docs/workflows.md"],
+        "commands/sdd-init.md": ["docs/cli.md", "docs/installation.md"],
+        "scripts/lib.mjs": ["schemas/spec-driven/schema.yaml"]
+      }
+    }
+  }
+}

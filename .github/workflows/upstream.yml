@@ -1,0 +1,73 @@
+name: upstream
+
+# Weekly: detect ECC/OpenSpec changes that touch what we adapted, and check the
+# harness against the newest OpenSpec release. Findings go to one tracking
+# issue labelled `upstream-sync`; porting happens in a PR (see
+# .claude/commands/upstream-sync.md), which closes the issue.
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Detect upstream changes
+        run: node scripts/upstream-check.mjs --out report.md --json summary.json
+
+      - name: Check compatibility with the latest OpenSpec
+        id: compat
+        run: |
+          npm install -g @fission-ai/openspec@latest
+          echo "version=$(openspec --version)" >> "$GITHUB_OUTPUT"
+          set +e
+          OPENSPEC_REQUIRED=1 node --test tests/openspec-compat.test.mjs > compat.log 2>&1
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMPAT_STATUS: ${{ steps.compat.outputs.status }}
+          OPENSPEC_LATEST: ${{ steps.compat.outputs.version }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          changed=$(jq -r .changed summary.json)
+          if [ "$changed" != "true" ] && [ "$COMPAT_STATUS" = "0" ]; then
+            echo "Nothing to port and compatible with OpenSpec $OPENSPEC_LATEST."
+            exit 0
+          fi
+
+          {
+            echo "Automated by the [upstream workflow]($RUN_URL). Port what matters with \`/upstream-sync\`, then close this issue from the PR."
+            echo
+            if [ "$COMPAT_STATUS" = "0" ]; then
+              echo "**OpenSpec $OPENSPEC_LATEST compatibility:** pass"
+            else
+              echo "**OpenSpec $OPENSPEC_LATEST compatibility:** FAIL"
+              echo
+              echo '```'
+              grep -E '^(not ok|# (pass|fail))|Error|Unknown|Invalid' compat.log | head -40
+              echo '```'
+            fi
+            echo
+            head -c 55000 report.md
+          } > body.md
+
+          gh label create upstream-sync --color 1d76db --description "Upstream ECC/OpenSpec changes to port" 2>/dev/null || true
+          existing=$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file body.md
+            echo "Updated issue #$existing"
+          else
+            gh issue create --title "Upstream sync: ECC/OpenSpec changes to review" --label upstream-sync --body-file body.md
+          fi

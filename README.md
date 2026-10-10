@@ -96,10 +96,32 @@ Markdown/текст и всё вне проекта. Любая ошибка в�
 | Подключить старый проект | `/sdd-init`, затем `spec-miner` по одной области |
 | Мелкий фикс | просто попросить — `sdd-workflow` оценит как trivial/small |
 
+## Обновления апстримов
+
+Наши файлы — адаптации ECC и OpenSpec, а не копии, поэтому обновление
+устроено в два слоя:
+
+1. **Обнаружение (GitHub Actions, каждый понедельник)** — `.github/workflows/upstream.yml`:
+   - `scripts/upstream-check.mjs` сравнивает зафиксированные в `upstream.lock.json`
+     коммиты (ECC `main`, последний релиз OpenSpec) с текущими и показывает
+     коммиты и diffstat только по тем путям, из которых сделан каждый наш файл;
+   - ставит свежий `@fission-ai/openspec@latest` и прогоняет
+     `tests/openspec-compat.test.mjs` (формат spec-miner, ключи `config.yaml`,
+     подхват `rules`/`guidance`);
+   - если есть что портировать или совместимость сломалась — создаёт/обновляет
+     одно issue с меткой `upstream-sync`.
+2. **Перенос** — команда `/upstream-sync` (в этом репо, не в плагине): Claude
+   читает диффы, решает port/skip по каждому изменению, правит наши файлы,
+   двигает lock, гоняет тесты и открывает PR с таблицей решений. Можно
+   запускать вручную или по расписанию.
+
+Ручная проверка: `node scripts/upstream-check.mjs`.
+
 ## Разработка
 
 ```bash
-npm test                       # тесты хуков (node:test, без зависимостей)
+npm test                       # тесты хуков, upstream-check и совместимости с OpenSpec
+OPENSPEC_REQUIRED=1 npm test   # как в CI: без openspec CLI тесты падают, а не пропускаются
 claude plugin validate .       # проверка манифестов
 ```
 
