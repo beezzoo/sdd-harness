@@ -1,0 +1,14 @@
+{
+  "name": "sdd-harness",
+  "description": "OpenSpec-centered spec-driven development harness for Claude Code",
+  "owner": {
+    "name": "beezzoo"
+  },
+  "plugins": [
+    {
+      "name": "sdd-harness",
+      "source": "./",
+      "description": "OpenSpec-centered SDD harness: agents, skills, commands and hooks."
+    }
+  ]
+}

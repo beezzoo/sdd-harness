@@ -1,0 +1,8 @@
+{
+  "name": "sdd-harness",
+  "version": "0.1.0",
+  "description": "Spec-driven development harness for Claude Code: OpenSpec as the source of truth, plus review agents, TDD-from-scenarios, verification loop and lightweight guard hooks adapted from ECC.",
+  "author": { "name": "beezzoo" },
+  "license": "MIT",
+  "keywords": ["openspec", "sdd", "spec-driven", "tdd", "code-review"]
+}

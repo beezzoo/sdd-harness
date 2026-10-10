@@ -1,0 +1,45 @@
+# openspec/config.yaml — sdd-harness template
+# Copy into your project's openspec/ (or run /sdd-init) and fill in `context`.
+# Supported keys (OpenSpec 1.14): schema, context, rules.<artifact>,
+# operations.{apply,archive}.guidance
+
+schema: spec-driven
+
+context: |
+  # Replace with facts every artifact must respect. Keep it short.
+  Tech stack: <language, framework, runtime versions>
+  Build / test / lint commands: <exact commands contributors and CI run>
+  Test layout: <where tests live, framework, naming>
+  Constraints: <compatibility, performance, platform, security constraints>
+  Workflow: changes follow the sdd-harness `sdd-workflow` skill
+  (size classification, Gate 1 = proposal approval, Gate 2 = pre-archive verify).
+
+rules:
+  proposal:
+    - State the sdd-workflow size tier (standard or large) and why in one line under Why
+    - Mark every breaking change with **BREAKING** and give a migration path
+    - List security-sensitive surfaces touched (auth, secrets, input parsing, data deletion) or write "none"
+  specs:
+    - Every scenario must be concrete enough to become one automated test (specific inputs and observable outputs)
+    - Cover at least one failure or rejection scenario for every requirement that accepts input
+    - Describe observable behavior only; implementation names belong in design.md
+  design:
+    - Record rejected alternatives for each decision
+    - Name the existing code patterns this change mirrors, with file paths
+  tasks:
+    - Order each task group red-to-green - first a task that writes failing tests for the group's scenarios, then the implementation task that makes them pass
+    - Every task states its verification command or observable check
+    - Do not collect all testing into a final group; each group lands its own tests
+    - Add a final integration task that runs the project's full verification (build, lint, tests)
+
+operations:
+  apply:
+    guidance:
+      - Follow the tdd-from-scenarios skill - write the failing test for each scenario before the code, with a "spec - <capability>/<Requirement>/<Scenario>" trace comment
+      - Tick a task only after its stated verification passed in this session
+      - If a scenario turns out wrong, update the delta spec and re-run openspec validate --strict before continuing
+      - After the last task, delegate review to the code-reviewer agent (plus security-reviewer when security surfaces are touched) and fix CRITICAL/HIGH findings
+  archive:
+    guidance:
+      - Archive only after /sdd-verify reported READY TO ARCHIVE and the user confirmed (Gate 2)
+      - Mention the archived change id in the commit message

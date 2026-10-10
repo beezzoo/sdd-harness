@@ -1,0 +1,12 @@
+{
+  "name": "sdd-harness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OpenSpec-centered spec-driven development harness for Claude Code",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  }
+}
